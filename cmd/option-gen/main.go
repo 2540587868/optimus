@@ -26,13 +26,26 @@ import(
 
 type {{.StructName }}Option func (*{{.StructName }})
 
+//New{{ .StructName }} creates a new {{ .StructName }} with defaults and applies options.
+func New{{ .StructName }}(opts ...{{ .StructName }}Option) *{{.StructName}} {
+	c:=&{{	.StructName	}}	{
+		{{- range .Fields }}
+		{{- if .DefaultVal }}
+		{{ .Name }}: {{ .DefaultVal }},
+		{{- end }}
+		{{- end }}
+	}
+	c.Apply(opts...)
+	return c 
+}
+
+
 //Apply applies options to the config
 func (c*{{.StructName }})Apply(opts...{{.StructName }}Option){
 	for _,opt:=range opts{
 		opt(c)
 	}
 }
-
 
 {{range.Fields}}
 {{- range .Comments }}
@@ -57,12 +70,13 @@ func {{ .Func }}(v {{ .Type }}) {{ $.StructName }}Option {
 `
 
 type FieldInfo struct {
-	Name      string   // 字段名 (e.g. Host)
-	Type      string   // 字段类型 (e.g. string)
-	Func      string   // 生成的方法名 (e.g. WithHost 或 AddIP)
-	ParamType string   // 参数类型 (如果是切片，这里存元素类型)
-	IsSlice   bool     // 是否是切片
-	Comments  []string // 字段注释
+	Name       string   // 字段名 (e.g. Host)
+	Type       string   // 字段类型 (e.g. string)
+	Func       string   // 生成的方法名 (e.g. WithHost 或 AddIP)
+	ParamType  string   // 参数类型 (如果是切片，这里存元素类型)
+	Comments   []string // 字段注释
+	DefaultVal string   //默认值
+	IsSlice    bool     // 是否是切片
 }
 
 type TemplateData struct {
@@ -126,9 +140,12 @@ func main() {
 			fieldName := field.Names[0].Name
 
 			tagVal := ""
+			defaultTag := ""
 			if field.Tag != nil {
 				cleanTag := strings.Trim(field.Tag.Value, "`")
-				tagVal = reflect.StructTag(cleanTag).Get("opt")
+				parsedTag := reflect.StructTag(cleanTag)
+				tagVal = parsedTag.Get("opt")
+				defaultTag = parsedTag.Get("default")
 			}
 
 			if tagVal == "-" {
@@ -139,6 +156,19 @@ func main() {
 			typeEnd := fset.Position(field.Type.End()).Offset
 			src, _ := os.ReadFile(goFile)
 			fieldType := string(src[typeStart:typeEnd])
+
+			defaultValCode := ""
+			if defaultTag != "" {
+				if fieldType == "string" {
+					defaultValCode = fmt.Sprintf("%q", defaultTag)
+				} else {
+					// 对于 int, bool, float, time.Duration 等
+					// 暂时直接信任用户写的代码，原样放进去
+					// 比如 default:"100" -> 100
+					// 比如 default:"30 * time.Second" -> 30 * time.Second
+					defaultValCode = defaultTag
+				}
+			}
 
 			var comments []string
 			if field.Doc != nil {
@@ -165,12 +195,13 @@ func main() {
 			}
 
 			fields = append(fields, FieldInfo{
-				Name:      fieldName,
-				Type:      fieldType,
-				Func:      funcName,
-				ParamType: paramType,
-				IsSlice:   isSlice,
-				Comments:  comments,
+				Name:       fieldName,
+				Type:       fieldType,
+				Func:       funcName,
+				ParamType:  paramType,
+				IsSlice:    isSlice,
+				Comments:   comments,
+				DefaultVal: defaultValCode,
 			})
 		}
 		return false

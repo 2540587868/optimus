@@ -4,22 +4,21 @@ import "time"
 
 //go:generate go run ../cmd/option-gen/main.go -type=ServerConfig
 type ServerConfig struct {
-	// Host is the binding address
-	Host string
+	// Host 默认为 localhost
+	// 注意：string 类型，生成器会自动给它加引号
+	Host string `default:"localhost"`
 
-	// Port 监听端口
-	// 默认 8080
-	Port int
+	// Port 默认为 8080
+	// 注意：int 类型，生成器直接使用原值
+	Port int `default:"8080"`
 
-	// Timeout 请求超时时间
-	Timeout time.Duration
+	// Timeout 默认为 10秒
+	// 注意：这里我们直接写 Go 代码片段，生成器会把它复制过去
+	Timeout time.Duration `default:"10 * time.Second"`
 
-	// Whitelist 这里的 []string 会自动生成 AddWhitelist 方法
+	// EnableLog 默认为 true
+	EnableLog bool `default:"true"`
+
+	// Whitelist 切片暂不支持 default（因为切片初始化比较复杂），保持为空
 	Whitelist []string
-
-	// Internal 这里的 opt:"-" 表示不对外暴露，不生成 Option
-	Internal int `opt:"-"`
-
-	// TLS 这里的 opt:"WithSecure" 表示生成的函数改名叫 WithSecure
-	TLS bool `opt:"WithSecure"`
 }
