@@ -1,1 +1,18 @@
-.idea
+# Go binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# JetBrains IDEs config
+.idea/
+
+# VS Code config
+.vscode/
