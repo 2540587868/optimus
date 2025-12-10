@@ -34,7 +34,7 @@ Optimus 通过唯一的代码源——带标签的结构体定义——来自动
 ## 安装
 
 ```bash
-go install github.com/2540587868/optimus/cmd/option-gen@latest
+go install github.com/2540587868/optimus/cmd/optimus@latest
 ```
 *(请确保你的 `$GOPATH/bin` 目录已添加到系统的 `PATH` 环境变量中。)*
 

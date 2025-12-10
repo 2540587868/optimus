@@ -34,7 +34,7 @@ Optimus solves this by generating all the necessary code from a single source of
 ## Installation
 
 ```bash
-go install github.com/2540587868/optimus/cmd/option-gen@latest
+go install github.com/2540587868/optimus/cmd/optimus@latest
 ```
 *(Ensure that your `$GOPATH/bin` directory is in your system's `PATH`.)*
 
